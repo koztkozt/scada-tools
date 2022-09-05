@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 """
 File: iec-61850-8-1.py
 Desc: iec-61850-8-1 (mms) protocol tool: send/recv identify packets and extract vendor name, model name, revision
@@ -52,10 +51,10 @@ def mms_Identify():
         0x00, # class
     ]
 
-    sock.send(''.join(map(chr,CR_TPDU)))
+    sock.send(bytes(CR_TPDU))
     recv = sock.recv(1024)
-    logging.debug('mms_Identify : recv: %s' % recv.encode('hex'))
-    print "recv: %r" % recv
+    logging.debug('mms_Identify : recv: %s' % recv.hex())
+    print("recv: %r" % recv)
     
     # =========================================================================
     
@@ -106,11 +105,10 @@ def mms_Identify():
         0x00, 0x00, 0x00, 0x00, 0x00, 0x64, 0x00, 0x01, 
         0x98
     ]
-
-    sock.send(''.join(map(chr,MMS_INITIATE)))
+    sock.send(bytes(MMS_INITIATE))
     recv = sock.recv(1024)
-    logging.debug('mms_Identify : recv: %s' % recv.encode('hex'))
-    print "recv: %r" % recv
+    logging.debug('mms_Identify : recv: %s' % recv.hex())
+    print("recv: %r" % recv)
 
 
     MMS_IDENTIFY = [
@@ -120,11 +118,10 @@ def mms_Identify():
         0x01, 0x03, 0xa0, 0x07, 0xa0, 0x05, 0x02, 0x01, 
         0x01, 0x82, 0x00 
     ]
-
-    sock.send(''.join(map(chr,MMS_IDENTIFY)))
+    sock.send(bytes(MMS_IDENTIFY))
     recv = sock.recv(1024)
-    logging.debug('mms_Identify : recv: %s' % recv.encode('hex'))
-    print "recv: %r" % recv
+    logging.debug('mms_Identify : recv: %s' % recv.hex())
+    print("recv: %r" % recv)
     return recv
 
 
@@ -132,10 +129,11 @@ if __name__ == '__main__':
     r = mms_Identify()
 
     tpkt = struct.unpack('!I', r[:4])
-    print tpkt
-    iso8073 = struct.unpack('!I', '\x00' + r[4:7])
+    print(tpkt)
+    print(r)
+    iso8073 = struct.unpack('!I', b'\x00' + r[4:7])
     iso8327 = struct.unpack('!I', r[7:11])
-    iso8823 = struct.unpack('!II', '\x00' + r[11:18])
+    iso8823 = struct.unpack('!II', b'\x00' + r[11:18])
     mms = r[18:]
 
     a0, a0_packetsize = struct.unpack('!BB', mms[:2])
@@ -143,16 +141,14 @@ if __name__ == '__main__':
     invokeID, invokeID_size = struct.unpack('!BB', mms[4:6])
     a2, a2_packetsize = struct.unpack('!BB', mms[6+invokeID_size:6+invokeID_size+2])
     mms_identify_info = mms[6+invokeID_size+2:]
-    print "mms_identify_info: %r" % mms_identify_info
+    print("mms_identify_info: %r" % mms_identify_info)
     vendor_name_size, = struct.unpack('!B', mms_identify_info[1:2])
-    vendor_name = ''.join(struct.unpack('!%dc' % vendor_name_size, mms_identify_info[2:2+vendor_name_size]))
+    vendor_name = b''.join(struct.unpack('!%dc' % vendor_name_size, mms_identify_info[2:2+vendor_name_size]))
     mms_identify_info = mms_identify_info[2+vendor_name_size:]
     model_name_size, = struct.unpack('!B', mms_identify_info[1:2])
-    model_name = ''.join(struct.unpack('!%dc' % model_name_size, mms_identify_info[2:2+model_name_size]))
+    model_name = b''.join(struct.unpack('!%dc' % model_name_size, mms_identify_info[2:2+model_name_size]))
     mms_identify_info = mms_identify_info[2+model_name_size:]
     revision_size, = struct.unpack('!B', mms_identify_info[1:2])
-    revision = ''.join(struct.unpack('!%dc' % revision_size, mms_identify_info[2:2+revision_size]))
+    revision = b''.join(struct.unpack('!%dc' % revision_size, mms_identify_info[2:2+revision_size]))
 
-    print "vendor name: {0}, model name: {1}, revision: {2}".format(vendor_name, model_name, revision)
-
-
+    print("vendor name: {0}, model name: {1}, revision: {2}".format(vendor_name, model_name, revision))
